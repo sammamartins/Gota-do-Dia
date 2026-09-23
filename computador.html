@@ -91,33 +91,26 @@ function draw(){
 }
 bg.onload=draw;ids.forEach(id=>document.getElementById(id).addEventListener('input',draw));
 document.getElementById('baixar').addEventListener('click',()=>{
- draw();
- // Versão para computador: força o download do PNG, sem abrir o menu de compartilhamento.
+ const btn=document.getElementById('baixar');
+ const original=btn.textContent;
+ btn.disabled=true;btn.textContent='Gerando imagem...';
  try{
-  canvas.toBlob((blob)=>{
-   if(!blob){
-    // Fallback para navegadores que não retornem Blob.
-    try{
-     const a=document.createElement('a');
-     a.href=canvas.toDataURL('image/png');
-     a.download='gota-do-dia.png';
-     document.body.appendChild(a);a.click();a.remove();
-    }catch(e){alert('Não foi possível gerar a imagem PNG neste navegador.');}
-    return;
-   }
-   const url=URL.createObjectURL(blob);
-   const a=document.createElement('a');
-   a.href=url;a.download='gota-do-dia.png';
-   document.body.appendChild(a);a.click();a.remove();
-   setTimeout(()=>URL.revokeObjectURL(url),5000);
-  },'image/png');
+  draw();
+  // No computador, gera o PNG diretamente a partir do canvas já desenhado.
+  // Evita Web Share e callbacks assíncronos que podem ser bloqueados/encerrados pelo navegador corporativo.
+  const png=canvas.toDataURL('image/png');
+  const a=document.createElement('a');
+  a.href=png;
+  a.download='gota-do-dia.png';
+  a.style.display='none';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
  }catch(e){
-  try{
-   const a=document.createElement('a');
-   a.href=canvas.toDataURL('image/png');
-   a.download='gota-do-dia.png';
-   document.body.appendChild(a);a.click();a.remove();
-  }catch(err){alert('Não foi possível gerar a imagem PNG neste navegador.');}
+  console.error(e);
+  alert('Não foi possível gerar o PNG. Atualize a página e tente novamente.');
+ }finally{
+  btn.disabled=false;btn.textContent=original;
  }
 });
 document.getElementById('semPrazo').addEventListener('change',function(){const p=document.getElementById('prazo');p.disabled=this.checked;p.style.display=this.checked?'none':'block';draw();});
