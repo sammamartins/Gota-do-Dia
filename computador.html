@@ -90,6 +90,35 @@ function draw(){
  ctx.fillStyle='#e84b5f';ctx.beginPath();ctx.moveTo(0,H-48);ctx.quadraticCurveTo(300,H-105,570,H-62);ctx.quadraticCurveTo(830,H-20,1080,H-70);ctx.lineTo(1080,H);ctx.lineTo(0,H);ctx.closePath();ctx.fill();
 }
 bg.onload=draw;ids.forEach(id=>document.getElementById(id).addEventListener('input',draw));
-document.getElementById('baixar').addEventListener('click',async()=>{draw();canvas.toBlob(async(blob)=>{if(!blob){alert('Não foi possível gerar a imagem.');return;}const file=new File([blob],'gota-do-dia.png',{type:'image/png'});try{if(navigator.share&&(!navigator.canShare||navigator.canShare({files:[file]}))){await navigator.share({files:[file],title:'Gota do Dia'});return;}}catch(e){if(e&&e.name==='AbortError')return;}try{const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='gota-do-dia.png';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),3000);}catch(e){alert('Não foi possível salvar. Pressione a imagem da prévia e escolha salvar/compartilhar.');}},'image/png');});
+document.getElementById('baixar').addEventListener('click',()=>{
+ draw();
+ // Versão para computador: força o download do PNG, sem abrir o menu de compartilhamento.
+ try{
+  canvas.toBlob((blob)=>{
+   if(!blob){
+    // Fallback para navegadores que não retornem Blob.
+    try{
+     const a=document.createElement('a');
+     a.href=canvas.toDataURL('image/png');
+     a.download='gota-do-dia.png';
+     document.body.appendChild(a);a.click();a.remove();
+    }catch(e){alert('Não foi possível gerar a imagem PNG neste navegador.');}
+    return;
+   }
+   const url=URL.createObjectURL(blob);
+   const a=document.createElement('a');
+   a.href=url;a.download='gota-do-dia.png';
+   document.body.appendChild(a);a.click();a.remove();
+   setTimeout(()=>URL.revokeObjectURL(url),5000);
+  },'image/png');
+ }catch(e){
+  try{
+   const a=document.createElement('a');
+   a.href=canvas.toDataURL('image/png');
+   a.download='gota-do-dia.png';
+   document.body.appendChild(a);a.click();a.remove();
+  }catch(err){alert('Não foi possível gerar a imagem PNG neste navegador.');}
+ }
+});
 document.getElementById('semPrazo').addEventListener('change',function(){const p=document.getElementById('prazo');p.disabled=this.checked;p.style.display=this.checked?'none':'block';draw();});
 </script></body></html>
